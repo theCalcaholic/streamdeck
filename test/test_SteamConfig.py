@@ -1,7 +1,6 @@
-import os
 import unittest
 from unittest.mock import patch, Mock, NonCallableMagicMock
-from streamdeck.config.FirefoxConfig import FirefoxConfig
+from streamdeck.config.SteamConfig import SteamConfig
 from subprocess import CompletedProcess
 from pathlib import Path
 
@@ -32,7 +31,7 @@ def _gen_is_file_mocked(files: list[str]):
     return is_file
 
 
-class TestFirefoxConfig(unittest.TestCase):
+class TestSteamConfig(unittest.TestCase):
 
     def setUp(self) -> None:
         self.patchers = []
@@ -53,49 +52,49 @@ class TestFirefoxConfig(unittest.TestCase):
 
         ff_native_cmd = ff_flatpak_cmd = None
         ff_native_config_path = f"{DUMMY_USER_HOME}"
-        ff_flatpak_config_path = f"{DUMMY_USER_HOME}/.var/app/org.mozilla.firefox"
+        ff_flatpak_config_path = f"{DUMMY_USER_HOME}/.var/app/com.valvesoftware.Steam"
 
         find_flatpak_mock.return_value = (ff_flatpak_cmd, ff_flatpak_config_path)
         find_binary_mock.return_value = ff_native_cmd
 
-        ff_config = FirefoxConfig.autodetect()
+        ff_config = SteamConfig.autodetect()
 
         self.assertEqual(None, ff_config.command)
         self.assertEqual(None, ff_config.config_path)
         self.assertFalse(ff_config.is_flatpak)
         self.assertFalse(ff_config.autodetected)
-        find_binary_mock.assert_called_once_with("firefox")
-        find_flatpak_mock.assert_called_once_with("org.mozilla.firefox")
+        find_binary_mock.assert_called_once_with("steam")
+        find_flatpak_mock.assert_called_once_with("com.valvesoftware.Steam")
 
         # Case 2: No flatpak but native installation detected
 
-        ff_native_cmd = ['/bin/firefox']
+        ff_native_cmd = ['/bin/steam']
 
         find_flatpak_mock.reset_mock()
         find_binary_mock.reset_mock()
         find_flatpak_mock.return_value = (ff_flatpak_cmd, ff_flatpak_config_path)
         find_binary_mock.return_value = ff_native_cmd
 
-        ff_config = FirefoxConfig.autodetect()
+        ff_config = SteamConfig.autodetect()
 
         self.assertEqual(ff_native_cmd, ff_config.command)
-        self.assertEqual(f"{ff_native_config_path}/.mozilla/firefox", ff_config.config_path)
+        self.assertEqual(f"{ff_native_config_path}/.local/share/Steam", ff_config.config_path)
         self.assertFalse(ff_config.is_flatpak)
         self.assertTrue(ff_config.autodetected)
 
         # Case 3: Flatpak and Firefox installation detected (flatpak should take precedence)
 
-        ff_flatpak_cmd = ['flatpak', 'run', '--user', 'org.mozilla.firefox']
+        ff_flatpak_cmd = ['flatpak', 'run', '--user', 'com.valvesoftware.Steam']
 
         find_flatpak_mock.reset_mock()
         find_binary_mock.reset_mock()
         find_flatpak_mock.return_value = (ff_flatpak_cmd, ff_flatpak_config_path)
         find_binary_mock.return_value = ff_native_cmd
 
-        ff_config = FirefoxConfig.autodetect()
+        ff_config = SteamConfig.autodetect()
 
         self.assertEqual(ff_flatpak_cmd, ff_config.command)
-        self.assertEqual(f"{ff_flatpak_config_path}/.mozilla/firefox", ff_config.config_path)
+        self.assertEqual(f"{ff_flatpak_config_path}/.local/share/Steam", ff_config.config_path)
         self.assertTrue(ff_config.is_flatpak)
         self.assertTrue(ff_config.autodetected)
 

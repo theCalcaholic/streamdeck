@@ -5,11 +5,14 @@ from unittest.mock import Mock, patch
 from streamdeck.kiosk import AppManager
 from streamdeck.config import Configuration
 from streamdeck.config.FirefoxConfig import FirefoxConfig
+from streamdeck.config.SteamConfig import SteamConfig
 from streamdeck.config.AppConfig import AppConfig
 from tempfile import TemporaryDirectory
 from dataclasses import asdict
 
 TEST_CONFIG = Configuration(config_path="/tmp", apps=[], firefox_profile_prefix='ff-prefix-',
+                            steam_config=SteamConfig(command=['/bin/firefox'],
+                                                     config_path='/home/streamdeck/.local/share/Steam'),
                             firefox_config=FirefoxConfig(command=['/bin/firefox'],
                                                          config_path='/home/streamdeck/.mozilla/firefox'))
 
