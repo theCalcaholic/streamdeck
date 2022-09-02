@@ -1,0 +1,12 @@
+app-id: org.flatpak.StreamDeck
+runtime: org.freedesktop.Platform
+runtime-version: '21.08'
+sdk: org.freedesktop.Sdk
+command: hello.sh
+modules:
+  - name: streamdeck
+    buildsystem: simple
+    build-commands: []
+    sources:
+      - type: file
+        path: hello.sh
