@@ -98,4 +98,7 @@ class TestSteamConfig(unittest.TestCase):
         self.assertTrue(ff_config.is_flatpak)
         self.assertTrue(ff_config.autodetected)
 
-
+    def test_library_paths(self):
+        self.patchers[0].stop()
+        steam_config = SteamConfig.autodetect()
+        print(steam_config.library_paths)

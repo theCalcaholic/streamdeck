@@ -26,7 +26,6 @@ def is_valid_command(cmd: list[str] | None) -> bool:
     if cmd is None or len(cmd) == 0 \
             or not (Path(cmd[0]).is_file() or which(cmd[0])) \
             or not os.access(cmd[0], os.X_OK):
-        print("invalid")
         return False
     if cmd[0].endswith("flatpak"):
         for expected in ["run"]:

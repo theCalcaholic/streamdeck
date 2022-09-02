@@ -71,10 +71,9 @@ class TestAppManager(unittest.TestCase):
         app_url = 'https://media.ccc.de'
         profile_path = Path(self.ff_config_dir.name) / f'{self.test_config.firefox_profile_prefix}{app_name}'
 
-        self.app_manager.config.apps.append(AppConfig(app_name, app_url, str(profile_path), hide_address_bar=True))
-        print(asdict(self.app_manager.config.apps[0]))
+        app = AppConfig(app_name, app_url, str(profile_path), hide_address_bar=True)
 
-        self.app_manager.install_app(0)
+        self.app_manager.install_app(app)
 
         self.assertTrue(profile_path.exists())
         self.assertTrue((profile_path / 'chrome/userChrome.css').is_file())

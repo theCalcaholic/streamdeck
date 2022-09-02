@@ -19,6 +19,7 @@ class Configuration:
     steam_config: SteamConfig
     firefox_config: FirefoxConfig
     config_path: InitVar[str]
+    users: list[str] = field(default_factory=list)
     firefox_profile_prefix: str = "streamdeck-"
     apps: list['AppConfig'] = field(default_factory=list)
 
@@ -29,7 +30,8 @@ class Configuration:
         for arg_name in ["firefox_config",
                          "steam_config",
                          "firefox_profile_prefix",
-                         "apps"]:
+                         "apps",
+                         "users"]:
             if arg_name in json_config:
                 args[arg_name] = json_config[arg_name]
 
