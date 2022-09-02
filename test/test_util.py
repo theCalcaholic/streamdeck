@@ -3,7 +3,7 @@ from unittest.mock import NonCallableMagicMock, patch, Mock
 from streamdeck.config.util import find_binary, find_flatpak, is_valid_command
 from subprocess import CompletedProcess
 import os
-from pathlib import Path
+from os import PathLike
 
 
 DUMMY_USER_HOME = '/home/streamdeck'
@@ -16,7 +16,7 @@ def _gen_is_valid_command_mock(valid_command: list[str]):
 
 
 def _gen_is_file_mocked(files: list[str]):
-    def is_file(path: Path):
+    def is_file(path: PathLike):
         return str(path) in files
     return is_file
 

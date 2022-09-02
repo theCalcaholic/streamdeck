@@ -1,9 +1,8 @@
 from dataclasses import dataclass, field, asdict, InitVar
 from shutil import which
 import json
-from typing import Optional
 from os.path import expanduser
-from pathlib import Path
+from os import PathLike
 
 from .AppConfig import AppConfig
 from .FirefoxConfig import FirefoxConfig
@@ -59,6 +58,6 @@ class Configuration:
     def to_json(self):
         return json.dumps(asdict(self))
 
-    def write(self, config_path: str):
-        with open(config_path, "w") as f:
+    def dump(self, config_path: PathLike[str]):
+        with config_path.open("w") as f:
             json.dump(asdict(self), f)

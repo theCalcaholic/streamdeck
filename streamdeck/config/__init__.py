@@ -4,6 +4,7 @@ from appdirs import user_config_dir
 from .Configuration import Configuration
 from .AppConfig import AppConfig
 from .SteamConfig import SteamConfig
+from .FirefoxConfig import FirefoxConfig
 
 
 DEFAULT_CONFIG_PATH = user_config_dir('streamdeck')

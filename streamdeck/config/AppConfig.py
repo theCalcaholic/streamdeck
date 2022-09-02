@@ -30,7 +30,7 @@ class AppConfig(Serializable):
             'AppName': self.name,
             'Exe': f'"{firefox.command[0]}"',
             'StartDir': expanduser("~"),
-            'LaunchOptions': firefox.command[1:] + self.launch_args,
+            'LaunchOptions': '"' + "\" \"".join(firefox.command[1:] + self.launch_args) + '"',
             'AllowDesktopConfig': 1,
             'AllowOverlay': 1,
             'openvr': 0,

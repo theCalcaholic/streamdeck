@@ -1,3 +1,4 @@
+from os import PathLike
 from pathlib import Path
 import unittest
 import json
@@ -18,7 +19,7 @@ TEST_CONFIG = Configuration(config_path="/tmp", apps=[], firefox_profile_prefix=
 
 
 def _get_is_dir_mocked(dirs: list[str]):
-    def is_dir(path: Path):
+    def is_dir(path: PathLike):
         return str(path) in dirs
     return is_dir
 

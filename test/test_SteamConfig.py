@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch, Mock, NonCallableMagicMock
 from streamdeck.config.SteamConfig import SteamConfig
 from subprocess import CompletedProcess
-from pathlib import Path
+from os import PathLike
 
 
 DUMMY_USER_HOME = '/home/streamdeck'
@@ -26,7 +26,7 @@ def _gen_subprocess_run(cmds: dict[list[str], int]):
 
 
 def _gen_is_file_mocked(files: list[str]):
-    def is_file(path: Path):
+    def is_file(path: PathLike):
         return str(path) in files
     return is_file
 
