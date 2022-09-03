@@ -22,8 +22,12 @@
     app_manager: root.app_manager
     apps: root.model.apps
     size_hint_y: None
-  Label:
-    text: root.model.config_path
+  Widget:
+    size_hint_y: .4
+  Button:
+    size_hint_y: None
+    text: 'Apply'
+    on_release: root.apply()
 
 <UserSelect>:
   config: None
@@ -49,11 +53,32 @@
     Label:
       text: 'Web Apps'
       size_hint_y: None
+    BoxLayout:
+      id: apps_container
+      orientation: 'vertical'
+      size_hint_y: None
     Button:
       size_hint_y: None
       text: 'Add'
       height: 44
       on_release: root.show_new_app_dialog()
+
+<SDApp>:
+  orientation: 'horizontal'
+  height: 40
+  BoxLayout:
+    width: 100
+    orientation: 'horizontal'
+    Label:
+      id: label
+      size_hint_x: None
+      text: ''
+    Widget:
+  Button:
+    size_hint_x: None
+    width: 60
+    text: 'Remove'
+
 
 <NewAppDialog>:
   field_label_width: 200

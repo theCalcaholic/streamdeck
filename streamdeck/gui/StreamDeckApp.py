@@ -29,6 +29,14 @@ class SDRootWidget(BoxLayout):
         super().__init__(**kwargs)
         self.model = config
 
+    def apply(self):
+        self.model.dump(self.model.config_path)
+        self.app_manager.apply_all()
+        popup = Popup(title="Success", content=Label(
+            text="Apps have been installed successfully!\n\nPlease restart Steam if it is currently running."),
+            size_hint=(.5, .5))
+        popup.open()
+
 
 class UserSelect(ScrollView):
     config: ObjectProperty(Configuration)
@@ -84,11 +92,26 @@ class NewAppDialog(Popup):
 
 
 class Apps(ScrollView):
+    apps: ListProperty([])
 
     def show_new_app_dialog(self):
         popup = NewAppDialog(app_manager)
         popup.open()
 
+    def on_kv_post(self, base_widget):
+        container = self.ids['apps_container'].__self__
+        for app in self.apps:
+            container.add_widget(SDApp(app.name))
+
+
+class SDApp(BoxLayout):
+    def __init__(self, app_name, **kwargs):
+        print(f'app_name: {app_name}')
+        self.app_name = app_name
+        super().__init__(**kwargs)
+
+    def on_kv_post(self, base_widget):
+        self.ids['label'].text = self.app_name
 
 class StreamDeckApp(App):
 

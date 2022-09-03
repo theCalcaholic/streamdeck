@@ -9,7 +9,10 @@ import vdf
 
 
 def install_userchrome_css(app: AppConfig):
-    (Path(app.firefox_profile) / 'chrome').mkdir(parents=True)
+    try:
+        (Path(app.firefox_profile) / 'chrome').mkdir(parents=True)
+    except FileExistsError:
+        pass
     with (Path(__file__).parent / "userChrome.css.jinja2").open("r") as f:
         template = Template(f.read())
     rendered = template.render(hide_adress_bar=app.hide_address_bar)
@@ -46,10 +49,16 @@ class AppManager:
         app = AppConfig(name, url, str(Path(self.config.firefox_config.config_path) / profile_uid),
                         hide_address_bar=hide_adress_bar)
         self.config.apps.append(app)
-        self.install_app(app)
+
+    def apply_all(self):
+        for app in self.config.apps:
+            self.install_app(app)
 
     def install_app(self, app: AppConfig):
-        Path(app.firefox_profile).mkdir(parents=True)
+        try:
+            Path(app.firefox_profile).mkdir(parents=True)
+        except FileExistsError:
+            pass
         install_userchrome_css(app)
         for user in self.config.users:
             install_shortcut(self.config.steam_config, user, self.config.firefox_config, app)
