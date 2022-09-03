@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from appdirs import user_config_dir
 
 from .Configuration import Configuration
@@ -15,3 +16,7 @@ def load_config_from_file(config_path: str = DEFAULT_CONFIG_PATH) -> Configurati
         json_config = json.load(f)
 
     return Configuration.load(json_config, config_path)
+
+
+def load_default_config() -> Configuration:
+    return Configuration(FirefoxConfig.autodetect(), SteamConfig.autodetect(), config_path=DEFAULT_CONFIG_PATH)

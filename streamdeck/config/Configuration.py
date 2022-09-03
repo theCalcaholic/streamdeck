@@ -52,12 +52,12 @@ class Configuration:
         setattr(self, "_config_path", config_path)
 
     @property
-    def config_path(self):
+    def config_path(self) -> str:
         return getattr(self, "_config_path")
 
-    def to_json(self):
+    def to_json(self) -> str:
         return json.dumps(asdict(self))
 
-    def dump(self, config_path: PathLike[str]):
-        with config_path.open("w") as f:
+    def dump(self, config_path: str | PathLike[str]) -> None:
+        with open(config_path, "w") as f:
             json.dump(asdict(self), f)
