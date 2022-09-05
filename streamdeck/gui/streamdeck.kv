@@ -46,8 +46,6 @@
       text: 'Select Steam Users for which to install Apps'
 
 <Apps>:
-  app_manager: None
-  apps: []
   BoxLayout:
     orientation: 'vertical'
     Label:
@@ -72,12 +70,14 @@
     Label:
       id: label
       size_hint_x: None
-      text: ''
+      text: root.app.name
     Widget:
   Button:
+    id: remove_button
     size_hint_x: None
     width: 60
     text: 'Remove'
+    on_release: root.dispatch('on_remove')
 
 
 <NewAppDialog>:

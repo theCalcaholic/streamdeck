@@ -4,18 +4,10 @@ import unittest
 import json
 from unittest.mock import Mock, patch
 from streamdeck.kiosk import AppManager
-from streamdeck.config import Configuration
 from streamdeck.config.FirefoxConfig import FirefoxConfig
-from streamdeck.config.SteamConfig import SteamConfig
 from streamdeck.config.AppConfig import AppConfig
 from tempfile import TemporaryDirectory
-from dataclasses import asdict
-
-TEST_CONFIG = Configuration(config_path="/tmp", apps=[], firefox_profile_prefix='ff-prefix-',
-                            steam_config=SteamConfig(command=['/bin/firefox'],
-                                                     config_path='/home/streamdeck/.local/share/Steam'),
-                            firefox_config=FirefoxConfig(command=['/bin/firefox'],
-                                                         config_path='/home/streamdeck/.mozilla/firefox'))
+from .common import initialize_test_environment
 
 
 def _get_is_dir_mocked(dirs: list[str]):
@@ -27,16 +19,12 @@ def _get_is_dir_mocked(dirs: list[str]):
 class TestAppManager(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.test_config_dir = TemporaryDirectory("streamdeck")
-        self.ff_config_dir = TemporaryDirectory("firefox")
-        self.test_config = TEST_CONFIG.load(json.loads(TEST_CONFIG.to_json()), self.test_config_dir.name)
-        self.test_config.firefox_config = FirefoxConfig(command=self.test_config.firefox_config.command,
-                                                        config_path=self.ff_config_dir.name)
+        self.test_config_dir, self.ff_config_dir, self.steam_config_dir, self.test_config = initialize_test_environment()
         self.app_manager = AppManager(self.test_config)
 
     def tearDown(self) -> None:
-        self.test_config_dir.cleanup()
-        self.ff_config_dir.cleanup()
+        for d in self.test_config_dir, self.ff_config_dir, self.steam_config_dir:
+            d.cleanup()
 
     def test_get_unique_profile_uid(self):
         app_uid = 'testapp'
@@ -79,4 +67,8 @@ class TestAppManager(unittest.TestCase):
         self.assertTrue(profile_path.exists())
         self.assertTrue((profile_path / 'chrome/userChrome.css').is_file())
 
+    def test_remove_app(self):
+        raise NotImplementedError
 
+    def test_update_app(self):
+        raise NotImplementedError

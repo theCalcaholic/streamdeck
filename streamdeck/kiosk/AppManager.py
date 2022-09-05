@@ -1,4 +1,6 @@
 import re
+import shutil
+import traceback
 
 from streamdeck.config import Configuration, AppConfig, SteamConfig, FirefoxConfig
 from pathlib import Path
@@ -18,12 +20,6 @@ def install_userchrome_css(app: AppConfig):
     rendered = template.render(hide_adress_bar=app.hide_address_bar)
     with (Path(app.firefox_profile) / 'chrome' / 'userChrome.css').open("w") as f:
         f.write(rendered)
-
-
-def install_shortcut(steam: SteamConfig, user_id: str, firefox: FirefoxConfig, app: AppConfig):
-    shortcuts = Shortcuts.load(steam, user_id)
-    shortcuts[app] = app.to_shortcut(firefox)
-    shortcuts.dump()
 
 
 class AppManager:
@@ -54,6 +50,24 @@ class AppManager:
         for app in self.config.apps:
             self.install_app(app)
 
+    def remove_app(self, app: AppConfig):
+        err_prefix = f"WARN: An error occurred while removing app {app.name}"
+        try:
+            shutil.rmtree(app.firefox_profile)
+        except FileNotFoundError as e:
+            print(f"{err_prefix}: {e}")
+
+        for user in self.config.users:
+            with Shortcuts.load(self.config.steam_config, user) as shortcuts:
+                try:
+                    del shortcuts[app]
+                except KeyError as e:
+                    print(f"{err_prefix}: {e} ")
+        try:
+            self.config.apps.remove(app)
+        except ValueError as e:
+            print(f"{err_prefix}: {e} ")
+
     def install_app(self, app: AppConfig):
         try:
             Path(app.firefox_profile).mkdir(parents=True)
@@ -61,6 +75,7 @@ class AppManager:
             pass
         install_userchrome_css(app)
         for user in self.config.users:
-            install_shortcut(self.config.steam_config, user, self.config.firefox_config, app)
+            with Shortcuts.load(self.config.steam_config, user) as shortcuts:
+                shortcuts[app] = app.to_shortcut(self.config.firefox_config)
 
 

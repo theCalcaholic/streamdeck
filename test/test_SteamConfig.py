@@ -3,9 +3,9 @@ from unittest.mock import patch, Mock, NonCallableMagicMock
 from streamdeck.config.SteamConfig import SteamConfig
 from subprocess import CompletedProcess
 from os import PathLike
+from .common import TEST_USER_HOME
 
 
-DUMMY_USER_HOME = '/home/streamdeck'
 
 
 def _gen_is_valid_command_mock(valid_command: list[str]):
@@ -37,7 +37,7 @@ class TestSteamConfig(unittest.TestCase):
         self.patchers = []
         expanduser_patcher = patch('streamdeck.config.SystemApplicationConfig.expanduser')
         expanduser_mock = expanduser_patcher.start()
-        expanduser_mock.return_value = DUMMY_USER_HOME
+        expanduser_mock.return_value = TEST_USER_HOME
         self.patchers.append(expanduser_patcher)
 
     def tearDown(self) -> None:
@@ -51,8 +51,8 @@ class TestSteamConfig(unittest.TestCase):
         # Case 3: No valid installation detected
 
         ff_native_cmd = ff_flatpak_cmd = None
-        ff_native_config_path = f"{DUMMY_USER_HOME}"
-        ff_flatpak_config_path = f"{DUMMY_USER_HOME}/.var/app/com.valvesoftware.Steam"
+        ff_native_config_path = f"{TEST_USER_HOME}"
+        ff_flatpak_config_path = f"{TEST_USER_HOME}/.var/app/com.valvesoftware.Steam"
 
         find_flatpak_mock.return_value = (ff_flatpak_cmd, ff_flatpak_config_path)
         find_binary_mock.return_value = ff_native_cmd

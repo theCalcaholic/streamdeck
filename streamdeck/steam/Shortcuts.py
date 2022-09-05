@@ -10,10 +10,14 @@ class Shortcuts:
         self.shortcuts_path = shortcuts_path
         self._shortcuts = shortcuts
 
+    @classmethod
+    def shortcut_matches(cls, shortcut: dict, app: AppConfig):
+        return app.firefox_profile in shortcut["tags"].values()
+
     def _find_app_shortcut(self, app: AppConfig):
         try:
             return next(((k, s) for k, s in self._shortcuts["shortcuts"].items()
-                         if app.firefox_profile in s["tags"].values()))
+                         if self.__class__.shortcut_matches(s, app)))
         except StopIteration:
             raise KeyError(app)
 
@@ -30,6 +34,10 @@ class Shortcuts:
         except KeyError:
             keys = sorted(self._shortcuts["shortcuts"].keys())
             self._shortcuts["shortcuts"][str(int(keys[-1])+1)] = app_shortcut
+
+    def __delitem__(self, app: AppConfig) -> None:
+        k, shortcut = self._find_app_shortcut(app)
+        del self._shortcuts['shortcuts'][k]
 
     def all(self) -> list[dict]:
         return list(self._shortcuts["shortcuts"].values())
@@ -49,6 +57,21 @@ class Shortcuts:
         file_path = file_path or self.shortcuts_path
         if file_path is None:
             raise ValueError('No file path specified!')
-        shutil.copyfile(file_path, Path(file_path).with_stem('shortcuts_backup'))
+        if Path(file_path).exists():
+            shutil.copyfile(file_path, Path(file_path).with_stem('shortcuts_backup'))
         with open(file_path, "wb") as f:
             vdf.binary_dump(new_values, f)
+
+    def __enter__(self):
+        if self.shortcuts_path is None:
+            raise ValueError("No shortcuts path is configured!. Shortcuts.shortcuts_path is required for using it as "
+                             "contextmanage (i.e. in with... statement)!")
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_tb is None:
+            self.dump(self.shortcuts_path)
+        else:
+            raise exc_val
+
+

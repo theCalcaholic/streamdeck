@@ -2,6 +2,7 @@ from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.uix.dropdown import DropDown
 from kivy.uix.button import Button
+from kivy.event import EventDispatcher
 from kivy.uix.popup import Popup
 from kivy.uix.togglebutton import ToggleButton
 from kivy.properties import ObjectProperty, ListProperty, StringProperty, BooleanProperty
@@ -61,25 +62,28 @@ class UserSelect(ScrollView):
             if user in self.config.users:
                 self.config.users.remove(user)
 
-
-
     def clear(self):
         for widget in self.children[0].children:
             if isinstance(widget, ToggleButton):
                 self.children[0].remove_widget(widget)
 
 
-class NewAppDialog(Popup):
+class NewAppDialog(Popup, EventDispatcher):
     app_name = StringProperty('My App')
     app_url = StringProperty('https://youtube.com')
     app_show_address_bar = BooleanProperty(False)
 
     def __init__(self, app_manager: AppManager, **kwargs):
         self.app_manager = app_manager
+        self.register_event_type('on_add_app')
         super().__init__(**kwargs)
+
+    def on_add_app(*args):
+        pass
 
     def on_pre_dismiss(self):
         self.app_manager.add_app(self.app_name, self.app_url, not self.app_show_address_bar)
+        self.dispatch('on_add_app')
 
     def set_name(self, value: str):
         self.app_name = value
@@ -93,25 +97,48 @@ class NewAppDialog(Popup):
 
 class Apps(ScrollView):
     apps: ListProperty([])
+    app_manager: AppManager
 
     def show_new_app_dialog(self):
         popup = NewAppDialog(app_manager)
+        popup.bind(on_add_app=self.on_add_app)
         popup.open()
 
     def on_kv_post(self, base_widget):
+        self.update_app_list()
+
+    def update_app_list(self):
         container = self.ids['apps_container'].__self__
+
+        for widget in container.children:
+            container.remove_widget(widget)
         for app in self.apps:
-            container.add_widget(SDApp(app.name))
+            app_widget = SDApp(app)
+            app_widget.bind(on_remove=self.on_remove_app)
+            container.add_widget(app_widget)
+
+    def on_add_app(self, *_):
+        self.update_app_list()
+
+    def on_remove_app(self, app_widget: 'SDApp'):
+        self.app_manager.remove_app(app_widget.app)
+        self.update_app_list()
 
 
-class SDApp(BoxLayout):
-    def __init__(self, app_name, **kwargs):
-        print(f'app_name: {app_name}')
-        self.app_name = app_name
+class SDApp(BoxLayout, EventDispatcher):
+
+    __events__ = ('on_remove',)
+
+    def __init__(self, app: AppConfig, **kwargs):
+        print(f'app_name: {app.name}')
+        self.register_event_type('on_remove')
+        self.app = app
         super().__init__(**kwargs)
 
-    def on_kv_post(self, base_widget):
-        self.ids['label'].text = self.app_name
+    def on_remove(self, *arg):
+        print(arg)
+        pass
+
 
 class StreamDeckApp(App):
 
