@@ -1,12 +1,18 @@
-app-id: org.flatpak.StreamDeck
+app-id: com.github.theCalcaholic.StreamDeck
 runtime: org.freedesktop.Platform
 runtime-version: '21.08'
 sdk: org.freedesktop.Sdk
-command: hello.sh
+command: python3  /app/streamdeck/gui/StreamDeckApp.py
+finish-args:
+  - --filesystem=~/.steam
+  - --filesystem=~/.mozilla/firefox
+  - --filesystem=~/.var/app/com.valvesoftware/Steam
+  - --filesystem=~/.var/app/org.mozilla.firefox
 modules:
   - name: streamdeck
     buildsystem: simple
-    build-commands: []
     sources:
-      - type: file
-        path: hello.sh
+      - type: dir
+        path : .
+    build-commands:
+      - pip3 install --prefix=/app --root=/ git+https://github.com/theCalcaholic/streamdeck.git

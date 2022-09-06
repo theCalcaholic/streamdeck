@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from .Serializable import Serializable
 from .FirefoxConfig import FirefoxConfig
 from os.path import expanduser
-from hashlib import sha256
+from pathlib import Path
 
 
 @dataclass(frozen=True, init=True)
@@ -15,7 +15,13 @@ class AppConfig(Serializable):
     @property
     def launch_args(self):
         args = ["--kiosk"] if self.hide_address_bar else []
-        return args + ["--profile", self.firefox_profile, self.url]
+        firefox_profile = self.firefox_profile
+        try:
+            firefox_profile = '/' + str(Path(self.firefox_profile)
+                                        .relative_to(f"{expanduser('~/.var/app/org.mozilla.firefox')}"))
+        except ValueError:
+            pass
+        return args + ["--profile", firefox_profile, self.url]
 
     @classmethod
     def load(cls, config: dict) -> 'AppConfig':
