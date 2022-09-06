@@ -1,3 +1,4 @@
+#:import utils kivy.utils
 #:import Factory kivy.factory.Factory
 
 <SDRootWidget>:
@@ -17,15 +18,17 @@
     height: '100dp'
   Widget:
     size_hint_y: None
-    height: 40
+    height: 10
   Apps:
     app_manager: root.app_manager
     apps: root.model.apps
-    size_hint_y: None
+    size_hint_y: 1
   Widget:
-    size_hint_y: .4
+    size_hint_y: None
+    height: 10
   Button:
     size_hint_y: None
+    height: 40
     text: 'Apply'
     on_release: root.apply()
 
@@ -46,31 +49,56 @@
       text: 'Select Steam Users for which to install Apps'
 
 <Apps>:
-  BoxLayout:
-    orientation: 'vertical'
-    Label:
-      text: 'Web Apps'
-      size_hint_y: None
+  id: layout
+  canvas:
+    Color:
+      rgba: 0, .3, 0, 1
+    Rectangle:
+      pos: self.pos
+      size: self.size
+  orientation: 'vertical'
+  Label:
+    text: 'Web Apps'
+    size_hint_y: None
+  ScrollView:
+    do_scroll: False, True
     BoxLayout:
       id: apps_container
       orientation: 'vertical'
       size_hint_y: None
-    Button:
-      size_hint_y: None
-      text: 'Add'
-      height: 44
-      on_release: root.show_new_app_dialog()
+      height: sum([c.height for c in self.children])
+  Button:
+    size_hint_y: None
+    text: 'Add'
+    height: 44
+    on_release: root.show_new_app_dialog()
 
 <SDApp>:
   orientation: 'horizontal'
-  height: 40
+  size_hint_y: None
+  height: 42
+  padding: 4
   BoxLayout:
     width: 100
     orientation: 'horizontal'
-    Label:
-      id: label
-      size_hint_x: None
-      text: root.app.name
+    BoxLayout:
+      orientation: 'vertical'
+      Label:
+        size_hint_x: None
+        width: self.texture_size[0]
+        height: 20
+        text: root.app.name
+      Widget:
+        size_hint_y: None
+        height: 2
+      Label:
+        size_hint_x: None
+        height: 20
+        padding_x: 6
+        font_size: 12
+        color: utils.get_color_from_hex('#999999')
+        width: self.texture_size[0]
+        text: root.app.url
     Widget:
   Button:
     id: remove_button

@@ -95,7 +95,7 @@ class NewAppDialog(Popup, EventDispatcher):
         self.app_show_address_bar = value
 
 
-class Apps(ScrollView):
+class Apps(BoxLayout):
     apps: ListProperty([])
     app_manager: AppManager
 
@@ -108,10 +108,9 @@ class Apps(ScrollView):
         self.update_app_list()
 
     def update_app_list(self):
-        container = self.ids['apps_container'].__self__
+        container: BoxLayout = self.ids['apps_container'].__self__
+        container.clear_widgets()
 
-        for widget in container.children:
-            container.remove_widget(widget)
         for app in self.apps:
             app_widget = SDApp(app)
             app_widget.bind(on_remove=self.on_remove_app)
