@@ -41,10 +41,15 @@ class AppManager:
         profile_uid = self.get_unique_profile_uid(re.sub(r'[^A-Z0-9a-z._]', '-', name))
         app = AppConfig(name, url, str(Path(self.config.firefox_config.config_path) / profile_uid),
                         hide_address_bar=hide_adress_bar)
+        print(f"add_app({app})")
         self.config.apps.append(app)
 
     def remove_app(self, app: AppConfig):
+        print(f"remove_app({app})")
         err_prefix = f"WARN: An error occurred while removing app {app.name}"
+        for user in self.config.steam_config.users:
+            if app.is_installed_for_user(user):
+                self.uninstall_app(app, user)
         try:
             shutil.rmtree(app.firefox_profile_dir)
         except FileNotFoundError as e:
@@ -54,19 +59,23 @@ class AppManager:
         except ValueError as e:
             print(f"{err_prefix}: {e} ")
 
-    def uninstall_app(self, app: AppConfig, user: str):
+    def uninstall_app(self, app: AppConfig, user: str, keep_data=False):
+        print(f"uninstall_app({app}, {user}, {keep_data})")
         err_prefix = f"WARN: An error occurred while uninstalling app {app.name} for user {user}"
 
         with Shortcuts.load(self.config.steam_config, user) as shortcuts:
             try:
                 del shortcuts[app]
             except KeyError as e:
+                print(shortcuts._shortcuts)
                 print(f"{err_prefix}: {e} ")
+                traceback.print_exc()
 
-        try:
-            shutil.rmtree(app.get_firefox_profile_path(user))
-        except FileNotFoundError as e:
-            print(f"{err_prefix}: {e}")
+        if not keep_data:
+            try:
+                shutil.rmtree(app.get_firefox_profile_path(user))
+            except FileNotFoundError as e:
+                print(f"{err_prefix}: {e}")
 
     def install_app(self, app: AppConfig, user: str):
         print(f"install_app({app}, {user})")
@@ -74,3 +83,14 @@ class AppManager:
         install_userchrome_css(app.get_firefox_profile_path(user), app.hide_address_bar)
         with Shortcuts.load(self.config.steam_config, user) as shortcuts:
             shortcuts[app] = app.to_shortcut(self.config.firefox_config, user)
+
+    def update_app(self, app_old: AppConfig, app_new: AppConfig):
+        print(f"update_app({app_old}, {app_new})")
+        index = self.config.apps.index(app_old)
+        self.config.apps[index] = app_new
+
+        keep_data = app_old.firefox_profile_dir == app_new.firefox_profile_dir
+        for user in self.config.steam_config.users:
+            if app_old.is_installed_for_user(user):
+                self.uninstall_app(app_old, user, keep_data)
+                self.install_app(app_new, user)

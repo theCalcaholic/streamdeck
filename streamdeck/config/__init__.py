@@ -1,5 +1,8 @@
 import json
+import os
+
 from appdirs import user_config_dir
+import os
 from os.path import expanduser
 from pathlib import Path
 
@@ -9,11 +12,11 @@ from .SteamConfig import SteamConfig
 from .FirefoxConfig import FirefoxConfig
 
 
-DEFAULT_CONFIG_PATH = user_config_dir('streamdeck')
+DEFAULT_CONFIG_PATH = str(Path(user_config_dir('streamdeck')) / 'config.json')
 
 
 def load_config_from_file(config_path: str = DEFAULT_CONFIG_PATH) -> Configuration:
-    with open(Path(config_path) / 'config.json', "r") as f:
+    with open(config_path, "r") as f:
         json_config = json.load(f)
 
     return Configuration.load(json_config, config_path)

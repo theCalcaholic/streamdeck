@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field, asdict, InitVar
-from shutil import which
+from pathlib import Path
 import json
 from os.path import expanduser
 from os import PathLike
@@ -58,5 +58,7 @@ class Configuration:
         return json.dumps(asdict(self))
 
     def dump(self, config_path: Union[str, PathLike[str]]) -> None:
+        path = Path(config_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
         with open(config_path, "w") as f:
             json.dump(asdict(self), f)

@@ -28,14 +28,6 @@
     model: root.model
     selected_user: users.selected_user
     size_hint_y: 1
-  Widget:
-    size_hint_y: None
-    height: 10
-  Button:
-    size_hint_y: None
-    height: 40
-    text: 'Apply'
-    on_release: root.apply()
 
 <UserSelect>:
   config: None
@@ -113,19 +105,25 @@
   Button:
     id: toggle_for_user_button
     size_hint_x: None
-    width: 60
-    text: '' if root.selected_user is None else ('Disable' if root.is_enabled else 'Enable')
+    width: 80
+    text: 'En/Disable' if root.selected_user is None else ('Disable' if root.is_enabled else 'Enable')
     disabled: root.selected_user is None
     on_release: root.dispatch('on_toggle_enabled')
   Button:
+    id: edit_button
+    size_hint_x: None
+    width: 80
+    text: 'Edit'
+    on_release: root.dispatch('on_edit', root.app)
+  Button:
     id: remove_button
     size_hint_x: None
-    width: 60
+    width: 80
     text: 'Remove'
     on_release: root.dispatch('on_remove')
 
 
-<NewAppDialog>:
+<EditAppDialog>:
   field_label_width: 200
   app_name: 'My App'
   app_url: 'https://youtube.com'
@@ -155,10 +153,17 @@
       value_change: root.set_show_address_bar
     Widget:
       height: 40
-    Button:
+    BoxLayout:
+      orientation: 'horizontal'
       size_hint_y: None
-      text: 'Create'
-      on_release: root.dismiss()
+      Button:
+        size_hint_y: None
+        text: 'Save'
+        on_release: root.apply()
+      Button:
+        size_hint_y: None
+        text: 'Cancel'
+        on_release: root.dismiss()
     Widget:
 
 <TextField@BoxLayout>:

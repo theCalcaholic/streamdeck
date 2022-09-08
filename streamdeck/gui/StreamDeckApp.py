@@ -13,6 +13,7 @@ from dataclasses import asdict
 from kivy.clock import mainthread
 from streamdeck.config import load_config_from_file, load_default_config, load_test_config, AppConfig, Configuration
 from streamdeck.kiosk import AppManager
+from dataclasses import asdict
 
 try:
     config = load_config_from_file()
@@ -74,21 +75,38 @@ class UserSelect(ScrollView, EventDispatcher):
                 self.children[0].remove_widget(widget)
 
 
-class NewAppDialog(Popup, EventDispatcher):
+class EditAppDialog(Popup, EventDispatcher):
     app_name = StringProperty('My App')
     app_url = StringProperty('https://youtube.com')
     app_show_address_bar = BooleanProperty(False)
 
-    def __init__(self, app_manager: AppManager, **kwargs):
-        self.app_manager = app_manager
-        self.register_event_type('on_add_app')
+    __events__ = ('on_apply', 'on_cancel')
+
+    def __init__(self, app: AppConfig = None, **kwargs):
+        if app is not None:
+            self.app_name = app.name
+            self.app_url = app.url
+            self.app_show_address_bar = not app.hide_address_bar
+        self.applied = False
         super().__init__(**kwargs)
 
-    def on_add_app(*args):
+    def on_edit_app(*args):
         pass
 
     def on_pre_dismiss(self):
-        self.dispatch('on_add_app', self.app_name, self.app_url, not self.app_show_address_bar)
+        pass
+
+    def apply(self, *args):
+        print(args)
+        self.applied = True
+        self.dispatch('on_apply', self.app_name, self.app_url, not self.app_show_address_bar)
+        self.dismiss()
+
+    def on_apply(self, *_):
+        pass
+
+    def on_cancel(self, *_):
+        pass
 
     def set_name(self, value: str):
         self.app_name = value
@@ -105,11 +123,15 @@ class Apps(BoxLayout):
     app_manager: AppManager
     selected_user = StringProperty(defaultvalue=None, allownone=True)
 
-    def show_new_app_dialog(self, skip=False):
-        if skip:
-            return
-        popup = NewAppDialog(app_manager)
-        popup.bind(on_add_app=self.on_add_app)
+    def show_edit_dialog(self, app: AppConfig | None):
+        popup = EditAppDialog(app=app)
+        def callback(_, *args):
+            if app is None:
+                return self.on_add_app(*args)
+            else:
+                return self.on_edit_app(app, *args)
+
+        popup.bind(on_apply=callback)
         popup.open()
 
     def on_kv_post(self, base_widget):
@@ -131,11 +153,21 @@ class Apps(BoxLayout):
             self.bind(selected_user=app_widget.setter('selected_user'))
             app_widget.bind(on_remove=self.on_remove_app)
             app_widget.bind(on_toggle_enabled=self.on_toggle_app_enabled)
+            app_widget.bind(on_edit=lambda _, widget_app: self.show_edit_dialog(widget_app))
             container.add_widget(app_widget)
         #container.add_widget(HLine())
 
-    def on_add_app(self, _, app_name: str, app_url: str, hide_address_bar: bool):
+    def on_add_app(self, app_name: str, app_url: str, hide_address_bar: bool):
         self.app_manager.add_app(app_name, app_url, hide_adress_bar=hide_address_bar)
+        self.update_app_list()
+        self.save_model()
+
+    def on_edit_app(self, app: AppConfig, app_name: str, app_url: str, hide_address_bar: bool):
+        self.app_manager.update_app(app, AppConfig.load(asdict(app) | {
+            'name': app_name,
+            'url': app_url,
+            'hide_address_bar': hide_address_bar
+        }))
         self.update_app_list()
         self.save_model()
 
@@ -162,7 +194,7 @@ class SDApp(BoxLayout, EventDispatcher):
     selected_user = StringProperty(defaultvalue=None, allownone=True)
     is_enabled = BooleanProperty(False)
 
-    __events__ = ('on_remove', 'on_toggle_enabled')
+    __events__ = ('on_remove', 'on_toggle_enabled', 'on_edit')
 
     def __init__(self, app: AppConfig, selected_user: str, **kwargs):
         self.selected_user = selected_user
@@ -181,6 +213,9 @@ class SDApp(BoxLayout, EventDispatcher):
 
     def on_remove(self, *arg):
         print(arg)
+        pass
+
+    def on_edit(self, *args):
         pass
 
 

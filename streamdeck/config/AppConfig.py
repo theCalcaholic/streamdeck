@@ -15,9 +15,10 @@ class AppConfig(Serializable):
 
     def get_launch_args(self, user: str):
         args = ["--kiosk"] if self.hide_address_bar else []
-        firefox_profile = Path(self.firefox_profile_dir) / user
+        firefox_profile = self.get_firefox_profile_path(user)
         try:
-            firefox_profile = '/' + str(firefox_profile.relative_to(f"{expanduser('~/.var/app/org.mozilla.firefox')}"))
+            flatpak_config_path = expanduser('~/.var/app/org.mozilla.firefox')
+            firefox_profile = str(Path(expanduser('~')) / firefox_profile.relative_to(f"{flatpak_config_path}"))
         except ValueError:
             pass
         return args + ["--profile", str(firefox_profile), self.url]
@@ -49,6 +50,6 @@ class AppConfig(Serializable):
             'DevkitGameID': '',
             'DevkitOverrideAppID': 0,
             'FlatpakAppID': '',
-            'tags': {'0': 'StreamDeck', '1': str(Path(self.firefox_profile_dir) / user)},
+            'tags': {'0': 'StreamDeck', '1': str(Path(self.get_firefox_profile_path(user)))},
             'collections': {'0': 'StreamDeck'}
         }
