@@ -13,6 +13,8 @@ class SteamConfig(SystemApplicationConfig):
 
     @property
     def library_paths(self) -> list[Path]:
+        if self.config_path is None:
+            return []
         lib_config_file = Path(self.config_path) / 'steamapps' / 'libraryfolders.vdf'
         if not lib_config_file.exists():
             return [lib_config_file.parent]
@@ -21,6 +23,8 @@ class SteamConfig(SystemApplicationConfig):
 
     @property
     def users(self) -> list[str]:
+        if self.config_path is None:
+            return []
         dirs = (Path(self.config_path) / 'userdata').glob("[0-9]*")
         return [d.name for d in dirs if d.is_dir() and len(d.name) > 3]
 

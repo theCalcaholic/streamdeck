@@ -6,18 +6,29 @@ from os import PathLike
 
 
 class Shortcuts:
-    def __init__(self, shortcuts: dict, shortcuts_path: PathLike | None = None):
-        self.shortcuts_path = shortcuts_path
+    def __init__(self, shortcuts: dict, user: str, steam_config_path: PathLike | None = None):
+        self.user = user
+        self.steam_config_path = steam_config_path
         self._shortcuts = shortcuts
 
     @classmethod
-    def shortcut_matches(cls, shortcut: dict, app: AppConfig):
-        return app.firefox_profile in shortcut["tags"].values()
+    def get_shortcuts_path(cls, steam_config_path: PathLike | str, user: str):
+        return Path(steam_config_path) / 'userdata' / user / 'config' / 'shortcuts.vdf'
+
+    @classmethod
+    def shortcut_matches(cls, shortcut: dict, user: str, app: AppConfig):
+        return str(app.get_firefox_profile_path(user)) in shortcut["tags"].values()
+
+    @property
+    def shortcuts_path(self):
+        if self.steam_config_path is None:
+            return None
+        return self.__class__.get_shortcuts_path(self.steam_config_path, self.user)
 
     def _find_app_shortcut(self, app: AppConfig):
         try:
             return next(((k, s) for k, s in self._shortcuts["shortcuts"].items()
-                         if self.__class__.shortcut_matches(s, app)))
+                         if self.__class__.shortcut_matches(s, self.user, app)))
         except StopIteration:
             raise KeyError(app)
 
@@ -32,8 +43,11 @@ class Shortcuts:
             k, old_shortcut = self._find_app_shortcut(app)
             self._shortcuts["shortcuts"][k] = old_shortcut | app_shortcut if merge else app_shortcut
         except KeyError:
-            keys = sorted(self._shortcuts["shortcuts"].keys())
-            self._shortcuts["shortcuts"][str(int(keys[-1])+1)] = app_shortcut
+            if len(self._shortcuts["shortcuts"]) == 0:
+                k = 0
+            else:
+                k = int(sorted(self._shortcuts["shortcuts"].keys())[-1]) + 1
+            self._shortcuts["shortcuts"][str(k)] = app_shortcut
 
     def __delitem__(self, app: AppConfig) -> None:
         k, shortcut = self._find_app_shortcut(app)
@@ -44,9 +58,11 @@ class Shortcuts:
 
     @classmethod
     def load(cls, steam: SteamConfig, user_id: str) -> 'Shortcuts':
-        shortcuts_path = Path(steam.config_path) / 'userdata' / user_id / 'config' / 'shortcuts.vdf'
+        shortcuts_path = None
+        if steam.config_path is not None:
+            shortcuts_path = cls.get_shortcuts_path(steam.config_path, user_id)
         with shortcuts_path.open("rb") as f:
-            return Shortcuts(vdf.binary_load(f), shortcuts_path)
+            return Shortcuts(vdf.binary_load(f), user_id, steam.config_path)
 
     def dump(self, file_path: PathLike | None = None):
         new_values = {

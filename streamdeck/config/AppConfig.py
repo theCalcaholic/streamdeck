@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass, field
 from .Serializable import Serializable
 from .FirefoxConfig import FirefoxConfig
@@ -9,34 +10,38 @@ from pathlib import Path
 class AppConfig(Serializable):
     name: str
     url: str
-    firefox_profile: str
+    firefox_profile_dir: str
     hide_address_bar: bool = True
 
-    @property
-    def launch_args(self):
+    def get_launch_args(self, user: str):
         args = ["--kiosk"] if self.hide_address_bar else []
-        firefox_profile = self.firefox_profile
+        firefox_profile = Path(self.firefox_profile_dir) / user
         try:
-            firefox_profile = '/' + str(Path(self.firefox_profile)
-                                        .relative_to(f"{expanduser('~/.var/app/org.mozilla.firefox')}"))
+            firefox_profile = '/' + str(firefox_profile.relative_to(f"{expanduser('~/.var/app/org.mozilla.firefox')}"))
         except ValueError:
             pass
-        return args + ["--profile", firefox_profile, self.url]
+        return args + ["--profile", str(firefox_profile), self.url]
 
     @classmethod
     def load(cls, config: dict) -> 'AppConfig':
         return AppConfig(
             name=config["name"],
             url=config["url"],
-            firefox_profile=config["firefox_profile"],
+            firefox_profile_dir=config["firefox_profile_dir"],
             hide_address_bar=config.get("hide_address_bar", True))
 
-    def to_shortcut(self, firefox: FirefoxConfig) -> dict:
+    def is_installed_for_user(self, user: str):
+        return (Path(self.firefox_profile_dir) / user).is_dir()
+
+    def get_firefox_profile_path(self, user: str):
+        return Path(self.firefox_profile_dir) / user
+
+    def to_shortcut(self, firefox: FirefoxConfig, user: str) -> dict:
         return {
             'AppName': self.name,
             'Exe': f'"{firefox.command[0]}"',
             'StartDir': expanduser("~"),
-            'LaunchOptions': '"' + "\" \"".join(firefox.command[1:] + self.launch_args) + '"',
+            'LaunchOptions': '"' + "\" \"".join(firefox.command[1:] + self.get_launch_args(user)) + '"',
             'AllowDesktopConfig': 1,
             'AllowOverlay': 1,
             'openvr': 0,
@@ -44,6 +49,6 @@ class AppConfig(Serializable):
             'DevkitGameID': '',
             'DevkitOverrideAppID': 0,
             'FlatpakAppID': '',
-            'tags': {'0': 'StreamDeck', '1': self.firefox_profile},
+            'tags': {'0': 'StreamDeck', '1': str(Path(self.firefox_profile_dir) / user)},
             'collections': {'0': 'StreamDeck'}
         }

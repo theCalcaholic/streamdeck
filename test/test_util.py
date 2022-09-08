@@ -49,9 +49,13 @@ class TestUtilFunctions(unittest.TestCase):
         self.assertEqual(f"{DUMMY_USER_HOME}/.var/app/org.mozilla.firefox", config_path)
 
     @patch('streamdeck.config.util.is_valid_command', new=_gen_is_valid_command_mock(['/bin/firefox']))
-    @patch('streamdeck.config.util.which')
-    def test_find_firefox_native(self, which_mock: Mock):
-        which_mock.return_value = '/bin/firefox'
+    @patch('streamdeck.config.util.subprocess.run')
+    def test_find_firefox_native(self, sp_run_mock: Mock):
+        sp_result_mock = NonCallableMagicMock(CompletedProcess)
+        sp_result_mock.returncode = 0
+        sp_result_mock.stdout = b'/bin/firefox'
+        sp_run_mock.return_value = sp_result_mock
+
         command = find_binary("firefox")
         self.assertEqual(['/bin/firefox'], command)
 

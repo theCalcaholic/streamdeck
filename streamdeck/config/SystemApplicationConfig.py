@@ -2,7 +2,7 @@ from os.path import expanduser
 from dataclasses import dataclass
 from .util import find_flatpak, find_binary
 from abc import ABC
-from typing import ClassVar
+from typing import ClassVar, Union
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -11,8 +11,8 @@ class SystemApplicationConfig(ABC):
     binary_name: ClassVar[str]
     config_suffix: ClassVar[str]
 
-    command: list[str] | None
-    config_path: str | None
+    command: Union[list[str], None]
+    config_path: Union[str, None]
     autodetected: bool = False
 
     @property
@@ -25,9 +25,11 @@ class SystemApplicationConfig(ABC):
         if command is None:
             command = find_binary(cls.binary_name)
             if command is None:
+                print(f"Found {command} with {config_path}/{cls.config_suffix}")
                 return cls(command=None, config_path=None, autodetected=False)
             else:
                 config_path = f"{expanduser('~')}"
+        print(f"Found {command} with {config_path}/{cls.config_suffix}")
         return cls(command=command, config_path=f"{config_path}/{cls.config_suffix}", autodetected=True)
 
     @classmethod

@@ -1,18 +1,49 @@
 app-id: com.github.theCalcaholic.StreamDeck
 runtime: org.freedesktop.Platform
-runtime-version: '21.08'
+runtime-version: &runtime-version '22.08'
 sdk: org.freedesktop.Sdk
-command: python3  /app/streamdeck/gui/StreamDeckApp.py
+command: /app/bin/streamdeck.sh
 finish-args:
-  - --filesystem=~/.steam
-  - --filesystem=~/.mozilla/firefox
-  - --filesystem=~/.var/app/com.valvesoftware/Steam
-  - --filesystem=~/.var/app/org.mozilla.firefox
+  - --share=ipc
+  - --share=network
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  - --filesystem=xdg-data/Steam:rw
+  - --filesystem=~/.steam:rw
+  - --filesystem=~/.mozilla/firefox:rw
+  - --filesystem=~/.var/app/com.valvesoftware.Steam:rw
+  - --filesystem=~/.var/app/org.mozilla.firefox:rw
+  - --filesystem=xdg-data/flatpak:ro
+  - --talk-name=org.freedesktop.Flatpak
+  - --env=STREAMDECK_CMD_PREFIX=flatpak-spawn --host
+add-extensions:
+  #  org.freedesktop.Platform.GL.default:
+  #    directory: lib/gl
+  #    add-ld-path: .
+  #    version: *runtime-version
+  org.freedesktop.Platform.ffmpeg-full:
+    directory: lib/ffmpeg
+    add-ld-path: .
+    version: *runtime-version
 modules:
+  - name: MTDev
+    sources:
+      type: archive
+      url: https://bitmath.org/code/mtdev/mtdev-1.1.6.tar.gz
+      sha256: 1325f389a2f25cd5f5a8ea4d29aad24aa7c3ec30401d679400dd79eb9c0a8dbb
+  - python3-requirements.json
   - name: streamdeck
     buildsystem: simple
     sources:
       - type: dir
         path : .
     build-commands:
-      - pip3 install --prefix=/app --root=/ git+https://github.com/theCalcaholic/streamdeck.git
+      - pip3 install --prefix=/app --root=/ .
+  - name: streamdeck-wrapper
+    buildsystem: simple
+    sources:
+      - path: streamdeck.sh
+        type: file
+    build-commands:
+      - install -D streamdeck.sh /app/bin/streamdeck.sh

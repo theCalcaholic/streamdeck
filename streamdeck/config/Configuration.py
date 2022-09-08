@@ -3,6 +3,7 @@ from shutil import which
 import json
 from os.path import expanduser
 from os import PathLike
+from typing import Union
 
 from .AppConfig import AppConfig
 from .FirefoxConfig import FirefoxConfig
@@ -18,7 +19,6 @@ class Configuration:
     steam_config: SteamConfig
     firefox_config: FirefoxConfig
     config_path: InitVar[str]
-    users: list[str] = field(default_factory=list)
     firefox_profile_prefix: str = "streamdeck-"
     apps: list['AppConfig'] = field(default_factory=list)
 
@@ -29,8 +29,7 @@ class Configuration:
         for arg_name in ["firefox_config",
                          "steam_config",
                          "firefox_profile_prefix",
-                         "apps",
-                         "users"]:
+                         "apps"]:
             if arg_name in json_config:
                 args[arg_name] = json_config[arg_name]
 
@@ -44,7 +43,7 @@ class Configuration:
             args["steam_config"] = SteamConfig.autodetect()
 
         if "apps" in args:
-            args["apps"] = list(map(lambda cfg: AppConfig.load(cfg), args["apps"]))
+            args["apps"] = [AppConfig.load(app) for app in args["apps"]]
 
         return Configuration(config_path=config_path, **args)
 
@@ -58,6 +57,6 @@ class Configuration:
     def to_json(self) -> str:
         return json.dumps(asdict(self))
 
-    def dump(self, config_path: str | PathLike[str]) -> None:
+    def dump(self, config_path: Union[str, PathLike[str]]) -> None:
         with open(config_path, "w") as f:
             json.dump(asdict(self), f)

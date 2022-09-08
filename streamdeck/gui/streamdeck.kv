@@ -2,6 +2,7 @@
 #:import Factory kivy.factory.Factory
 
 <SDRootWidget>:
+  apps: []
   canvas:
     Color:
       rgba: .3, 0, 0, 1
@@ -13,6 +14,8 @@
   padding: 10
   size_hint: 1, 1
   UserSelect:
+    id: users
+    selected_user: None
     config: root.model
     size_hint: 1, None
     height: '100dp'
@@ -20,8 +23,10 @@
     size_hint_y: None
     height: 10
   Apps:
+    id: apps
     app_manager: root.app_manager
-    apps: root.model.apps
+    model: root.model
+    selected_user: users.selected_user
     size_hint_y: 1
   Widget:
     size_hint_y: None
@@ -50,6 +55,9 @@
 
 <Apps>:
   id: layout
+  app_manager: None
+  selected_user: None
+  apps: []
   canvas:
     Color:
       rgba: 0, .3, 0, 1
@@ -70,10 +78,12 @@
   Button:
     size_hint_y: None
     text: 'Add'
+    #disabled: root.selected_user is None
     height: 44
-    on_release: root.show_new_app_dialog()
+    on_release: root.show_new_app_dialog(self.disabled)
 
 <SDApp>:
+  is_enabled: False
   orientation: 'horizontal'
   size_hint_y: None
   height: 42
@@ -100,6 +110,13 @@
         width: self.texture_size[0]
         text: root.app.url
     Widget:
+  Button:
+    id: toggle_for_user_button
+    size_hint_x: None
+    width: 60
+    text: '' if root.selected_user is None else ('Disable' if root.is_enabled else 'Enable')
+    disabled: root.selected_user is None
+    on_release: root.dispatch('on_toggle_enabled')
   Button:
     id: remove_button
     size_hint_x: None
@@ -195,3 +212,14 @@
     on_release: root.value_change is not None and root.value_change(self.value)
   Widget:
     size_hint_x: 1
+
+<HLine>:
+  id: hline
+  size_hint_y: None
+  height: 0
+  canvas:
+    Color:
+      rgb: 1., 0., 0.
+    Rectangle:
+      pos: 0, hline.center_y
+      size: hline.width, 2

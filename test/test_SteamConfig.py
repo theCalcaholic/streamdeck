@@ -6,8 +6,6 @@ from os import PathLike
 from .common import TEST_USER_HOME
 
 
-
-
 def _gen_is_valid_command_mock(valid_command: list[str]):
     def m_is_valid_command(cmd: list[str]):
         return cmd == valid_command
