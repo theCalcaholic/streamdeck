@@ -135,7 +135,7 @@
   app_name: 'My App'
   app_url: 'https://youtube.com'
   app_show_address_bar: False
-  title: 'New App'
+  title: 'Edit App "%s"' % root.app_name
   size_hint: 0.95, 0.95
   auto_dismiss: False
   BoxLayout:
@@ -158,6 +158,24 @@
       default: root.app_show_address_bar
       label_width: root.field_label_width
       value_change: root.set_show_address_bar
+    Widget:
+      size_hint_y: 0
+      height: 20
+#    HLine:
+#      color: '#AAAAAA'
+#      offset: 20
+    Label:
+      text: 'Images'
+      font_size: 18
+      size_hint_y: None
+      size_hint_x: None
+      size: self.texture_size
+      padding_x: 5
+      halign: 'left'
+      height: 60
+    ImageField:
+      label: 'icon'
+      label_width: root.field_label_width
     Widget:
       height: 40
     Widget:
@@ -206,6 +224,36 @@
   TextInput:
     text: root.placeholder
     on_text: root.value_change is not None and root.value_change(self.text)
+
+<ImageField@BoxLayout>:
+  label: 'label'
+  label_width: 100
+  image_size: (64, 64)
+  image_source: None
+  size_hint_y: None
+  height: 64
+  orientation: 'horizontal'
+  BoxLayout:
+    size_hint_x: None
+    width: root.label_width
+    orientation: 'horizontal'
+    Label:
+      width: root.label_width
+      size_hint_x: None
+      size: self.texture_size
+      text: root.label
+      padding_x: 5
+      halign: 'left'
+    Widget:
+      size_hint_x: 1
+  AsyncImage:
+    id: img
+    source: root.image_source
+    size: root.image_size[0] * (root.height / root.image_size[1]), root.height
+  TextInput:
+    text: ''
+    on_text: img.source = self.text
+
 
 <CheckBoxField@BoxLayout>
   label: 'label'
