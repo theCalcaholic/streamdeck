@@ -5,7 +5,7 @@
   apps: []
   canvas:
     Color:
-      rgba: .3, 0, 0, 1
+      rgb: utils.get_color_from_hex('#222837')
     Rectangle:
       pos: self.pos
       size: self.size
@@ -36,14 +36,14 @@
     padding: 10
     canvas:
       Color:
-        rgba: .3, .3, .4, 1
+        rgba: utils.get_color_from_hex('#52576655')
       Rectangle:
         pos: self.pos
         size: self.size
     orientation: 'vertical'
     size_hint_y: None
     Label:
-      text: 'Select Steam Users for which to install Apps'
+      text: 'Steam Users'
 
 <Apps>:
   id: layout
@@ -52,7 +52,7 @@
   apps: []
   canvas:
     Color:
-      rgba: 0, .3, 0, 1
+      rgba: utils.get_color_from_hex('#52576655')
     Rectangle:
       pos: self.pos
       size: self.size
@@ -60,6 +60,13 @@
   Label:
     text: 'Web Apps'
     size_hint_y: None
+    height: 40
+  HLine:
+    color: '#AAAAAA'
+    offset: 20
+  Widget:
+    size_hint_y: None
+    height: 4
   ScrollView:
     do_scroll: False, True
     BoxLayout:
@@ -72,7 +79,7 @@
     text: 'Add'
     #disabled: root.selected_user is None
     height: 44
-    on_release: root.show_new_app_dialog(self.disabled)
+    on_release: root.show_edit_dialog(None)
 
 <SDApp>:
   is_enabled: False
@@ -153,18 +160,27 @@
       value_change: root.set_show_address_bar
     Widget:
       height: 40
+    Widget:
     BoxLayout:
       orientation: 'horizontal'
       size_hint_y: None
+      Widget:
       Button:
         size_hint_y: None
+        size_hint_x: 1
+        minimum_width: 60
+        height: 40
         text: 'Save'
         on_release: root.apply()
+      Widget:
       Button:
         size_hint_y: None
+        size_hint_x: 1
+        minimum_width: 60
+        height: 40
         text: 'Cancel'
         on_release: root.dismiss()
-    Widget:
+      Widget:
 
 <TextField@BoxLayout>:
   label: 'label'
@@ -220,11 +236,13 @@
 
 <HLine>:
   id: hline
+  color: '#FF0000'
+  offset: 0
   size_hint_y: None
   height: 0
   canvas:
     Color:
-      rgb: 1., 0., 0.
+      rgb: utils.get_color_from_hex(root.color)
     Rectangle:
-      pos: 0, hline.center_y
-      size: hline.width, 2
+      pos: root.offset, hline.center_y
+      size: hline.width - root.offset, 2

@@ -6,7 +6,7 @@ setup(name='StreamDeck',
       author='Tobias Knöppler',
       url='https://github.com/theCalcaholic/streamdeck.git',
       packages=['streamdeck', 'streamdeck.gui', 'streamdeck.config', 'streamdeck.kiosk', 'streamdeck.steam'],
-      package_data={'streamdeck.gui': ['*.kv']}
+      package_data={'streamdeck.gui': ['*.kv'], 'streamdeck.kiosk': ['*.jinja2']}
 
       #install_requires=[
       #      'jinja2>=3.1.2,<4.0',
