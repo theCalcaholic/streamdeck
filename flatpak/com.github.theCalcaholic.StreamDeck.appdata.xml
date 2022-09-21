@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2022 Tobias Knöppler -->
+<component type="desktop-application">
+    <id>com.github.theCalcaholic.StreamDeck</id>
+    <metadata_license>FSFAP</metadata_license>
+    <project_license>GPL-3.0+</project_license>
+    <name>Stream Deck</name>
+    <summary>Add Streaming Web Services to Steam</summary>
+
+    <description>
+        <p>
+            Stream Deck is an application for adding and managing Streaming Web Services and integrate them into Steam.
+            It is specifically made to be used with the Steam Deck.
+        </p>
+    </description>
+
+    <launchable type="desktop-id">com.github.theCalcaholic.StreamDeck.desktop</launchable>
+
+    <screenshots>
+        <screenshot type="default">
+            <caption>Screenshot of the Application</caption>
+            <image>https://github.com/theCalcaholic/streamdeck/releases/download/v0.9.0/Screenshot.from.2022-09-21.21-30-48.png</image>
+        </screenshot>
+    </screenshots>
+
+    <url type="homepage">https://github.com/theCalcaholic/streamdeck</url>
+    <project_group>theCalcaholic</project_group>
+
+    <releases>
+        <release version="0.9.0" date="2022-09-21">
+            <description>
+                <p>Initial Release</p>
+            </description>
+        </release>
+    </releases>
+</component>

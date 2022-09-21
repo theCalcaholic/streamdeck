@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Version=1.5
+Name=Stream Deck
+Comment=Add (streaming) web services to Steam
+Icon=com.github.theCalcaholic.StreamDeck
+Exec=/usr/bin/flatpak run --branch=stable com.github.theCalcaholic.StreamDeck
+
