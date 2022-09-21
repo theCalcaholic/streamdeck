@@ -11,6 +11,7 @@ class AppConfig(Serializable):
     name: str
     url: str
     firefox_profile_dir: str
+    icon: str | None = None
     hide_address_bar: bool = True
 
     def get_launch_args(self, user: str):
@@ -28,6 +29,7 @@ class AppConfig(Serializable):
         return AppConfig(
             name=config["name"],
             url=config["url"],
+            icon=config.get('icon', None),
             firefox_profile_dir=config["firefox_profile_dir"],
             hide_address_bar=config.get("hide_address_bar", True))
 
@@ -38,7 +40,7 @@ class AppConfig(Serializable):
         return Path(self.firefox_profile_dir) / user
 
     def to_shortcut(self, firefox: FirefoxConfig, user: str) -> dict:
-        return {
+        shortcut = {
             'AppName': self.name,
             'Exe': f'"{firefox.command[0]}"',
             'StartDir': expanduser("~"),
@@ -53,3 +55,6 @@ class AppConfig(Serializable):
             'tags': {'0': 'StreamDeck', '1': str(Path(self.get_firefox_profile_path(user)))},
             'collections': {'0': 'StreamDeck'}
         }
+        if self.icon:
+            shortcut['icon'] = self.icon
+        return shortcut

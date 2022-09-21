@@ -1,4 +1,5 @@
 import datetime
+import io
 import time
 import os
 import asyncio
@@ -6,6 +7,7 @@ from kivy.app import App, async_runTouchApp
 from kivy.uix.widget import Widget
 from kivy.uix.dropdown import DropDown
 from kivy.uix.button import Button
+from kivy.uix.image import AsyncImage
 from kivy.event import EventDispatcher
 from kivy.uix.popup import Popup
 from kivy.uix.togglebutton import ToggleButton
@@ -19,6 +21,7 @@ from streamdeck.config import load_config_from_file, load_default_config, load_t
 from streamdeck.kiosk import AppManager
 from dataclasses import asdict
 from streamdeck.steam.banners import get_logo_from_ddg
+from tempfile import TemporaryFile
 
 try:
     config = load_config_from_file()
@@ -92,6 +95,7 @@ class EditAppDialog(Popup, EventDispatcher):
         if app is not None:
             self.app_name = app.name
             self.app_url = app.url
+            self.logo_source = f'file://app.icon' or ''
             self.app_show_address_bar = not app.hide_address_bar
         self.applied = False
         self.logo_refresh_ts = time.time()
@@ -111,7 +115,8 @@ class EditAppDialog(Popup, EventDispatcher):
     def apply(self, *args):
         print(args)
         self.applied = True
-        self.dispatch('on_apply', self.app_name, self.app_url, not self.app_show_address_bar)
+        print(f'logo: {self.logo_source}')
+        self.dispatch('on_apply', self.app_name, self.app_url, not self.app_show_address_bar, self.logo_source)
         self.dismiss()
 
     def on_apply(self, *_):
@@ -137,6 +142,7 @@ class Apps(BoxLayout):
 
     def show_edit_dialog(self, app: AppConfig | None):
         popup = EditAppDialog(app=app)
+
         def callback(_, *args):
             if app is None:
                 return self.on_add_app(*args)
@@ -169,8 +175,9 @@ class Apps(BoxLayout):
             container.add_widget(app_widget)
         #container.add_widget(HLine())
 
-    def on_add_app(self, app_name: str, app_url: str, hide_address_bar: bool):
-        self.app_manager.add_app(app_name, app_url, hide_adress_bar=hide_address_bar)
+    def on_add_app(self, app_name: str, app_url: str, hide_address_bar: bool, logo_source: str | None):
+        app = self.app_manager.add_app(app_name, app_url, hide_adress_bar=hide_address_bar)
+        self.app_manager.set_logo(app, logo_source)
         self.update_app_list()
         self.save_model()
 

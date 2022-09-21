@@ -1,3 +1,4 @@
+import io
 import re
 import shutil
 import traceback
@@ -8,7 +9,10 @@ from typing import Optional, Iterable
 from jinja2 import Template
 from streamdeck.steam import Shortcuts
 import json
+from dataclasses import asdict
+import urllib3
 
+http = urllib3.PoolManager()
 
 def install_userchrome_css(profile_path: Path, hide_address_bar=True):
     try:
@@ -40,12 +44,19 @@ class AppManager:
             return self.get_unique_profile_uid(uid, 0 if num is None else num+1)
         return profile_uid
 
-    def add_app(self, name: str, url: str, hide_adress_bar: bool = True):
+    def add_app(self, name: str, url: str, hide_adress_bar: bool = True) -> AppConfig:
         profile_uid = self.get_unique_profile_uid(re.sub(r'[^A-Z0-9a-z._]', '-', name))
         app = AppConfig(name, url, str(Path(self.config.firefox_config.config_path) / profile_uid),
                         hide_address_bar=hide_adress_bar)
         print(f"add_app({app})")
         self.config.apps.append(app)
+        return app
+
+    def set_logo(self, app: AppConfig, logo_url: str):
+        image_path = Path(app.firefox_profile_dir + '.jpg')
+        with http.request('GET', logo_url, preload_content=False) as img, image_path.open('wb') as f:
+            shutil.copyfileobj(img, f)
+        self.update_app(app, AppConfig.load(asdict(app) | {'icon': str(image_path)}))
 
     def remove_app(self, app: AppConfig):
         print(f"remove_app({app})")
