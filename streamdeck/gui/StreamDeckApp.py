@@ -3,6 +3,18 @@ import io
 import time
 import os
 import asyncio
+
+from kivy.config import Config
+if os.environ.get('SteamDeck', '0') == '1':
+    Config.set('kivy', 'desktop', 0)
+    Config.set('kivy', 'exit_on_escape', 1)
+    Config.set('graphics', 'borderless', 1)
+    Config.set('graphics', 'fullscreen', 'auto')
+    #Config.set('graphics', 'height', 720)
+    #Config.set('graphics', 'width', 1280)
+    from kivy.core.window import Window
+    #Window.fullscreen = 'auto'
+
 from kivy.app import App, async_runTouchApp
 from kivy.uix.widget import Widget
 from kivy.uix.dropdown import DropDown
@@ -21,7 +33,6 @@ from streamdeck.config import load_config_from_file, load_default_config, load_t
 from streamdeck.kiosk import AppManager
 from dataclasses import asdict
 from streamdeck.steam.banners import get_logo_from_ddg
-from tempfile import TemporaryFile
 
 try:
     config = load_config_from_file()
@@ -31,6 +42,7 @@ except FileNotFoundError as e:
     #config = load_test_config()
 
 app_manager = AppManager(config)
+
 
 
 class SDRootWidget(BoxLayout):
@@ -181,12 +193,14 @@ class Apps(BoxLayout):
         self.update_app_list()
         self.save_model()
 
-    def on_edit_app(self, app: AppConfig, app_name: str, app_url: str, hide_address_bar: bool):
-        self.app_manager.update_app(app, AppConfig.load(asdict(app) | {
+    def on_edit_app(self, app: AppConfig, app_name: str, app_url: str, hide_address_bar: bool, logo_source: str | None):
+        app = self.app_manager.update_app(app, AppConfig.load(asdict(app) | {
             'name': app_name,
             'url': app_url,
             'hide_address_bar': hide_address_bar
         }))
+        if logo_source and logo_source != app.icon:
+            self.app_manager.set_logo(app, logo_source)
         self.update_app_list()
         self.save_model()
 

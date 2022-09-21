@@ -98,7 +98,7 @@ class AppManager:
         with Shortcuts.load(self.config.steam_config, user) as shortcuts:
             shortcuts[app] = app.to_shortcut(self.config.firefox_config, user)
 
-    def update_app(self, app_old: AppConfig, app_new: AppConfig):
+    def update_app(self, app_old: AppConfig, app_new: AppConfig) -> AppConfig:
         print(f"update_app({app_old}, {app_new})")
         index = self.config.apps.index(app_old)
         self.config.apps[index] = app_new
@@ -108,3 +108,5 @@ class AppManager:
             if app_old.is_installed_for_user(user):
                 self.uninstall_app(app_old, user, keep_data)
                 self.install_app(app_new, user)
+
+        return app_new
