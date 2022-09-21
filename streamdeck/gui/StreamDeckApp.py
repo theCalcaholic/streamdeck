@@ -1,4 +1,8 @@
-from kivy.app import App
+import datetime
+import time
+import os
+import asyncio
+from kivy.app import App, async_runTouchApp
 from kivy.uix.widget import Widget
 from kivy.uix.dropdown import DropDown
 from kivy.uix.button import Button
@@ -10,10 +14,11 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from dataclasses import asdict
-from kivy.clock import mainthread
+from kivy.clock import mainthread, Clock
 from streamdeck.config import load_config_from_file, load_default_config, load_test_config, AppConfig, Configuration
 from streamdeck.kiosk import AppManager
 from dataclasses import asdict
+from streamdeck.steam.banners import get_logo_from_ddg
 
 try:
     config = load_config_from_file()
@@ -79,6 +84,7 @@ class EditAppDialog(Popup, EventDispatcher):
     app_name = StringProperty('My App')
     app_url = StringProperty('https://youtube.com')
     app_show_address_bar = BooleanProperty(False)
+    logo_source: StringProperty('')
 
     __events__ = ('on_apply', 'on_cancel')
 
@@ -88,7 +94,13 @@ class EditAppDialog(Popup, EventDispatcher):
             self.app_url = app.url
             self.app_show_address_bar = not app.hide_address_bar
         self.applied = False
+        self.logo_refresh_ts = time.time()
+        self.logo_refresh_scheduled = False
         super().__init__(**kwargs)
+
+    def on_kv_post(self, base_widget):
+        if self.app_url is not None:
+            asyncio.ensure_future(self.ids['logo_field'].update_image(self.app_url))
 
     def on_edit_app(*args):
         pass
@@ -108,8 +120,8 @@ class EditAppDialog(Popup, EventDispatcher):
     def on_cancel(self, *_):
         pass
 
-    def set_name(self, value: str):
-        self.app_name = value
+    # def set_name(self, value: str):
+    #     self.app_name = value
 
     def set_url(self, value: str):
         self.app_url = value
@@ -189,6 +201,54 @@ class Apps(BoxLayout):
         self.model.dump(self.model.config_path)
 
 
+class TextField(BoxLayout, EventDispatcher):
+    __events__ = ('on_text',)
+
+    def on_text(self, *args):
+        pass
+
+
+class ImageField(BoxLayout, EventDispatcher):
+    __events__ = ('on_image', 'on_query_image')
+    image_query = StringProperty(defaultvalue=None, allownone=True)
+    image_url = StringProperty(defaultvalue='')
+
+    def __init__(self, **kwargs):
+        self.logo_refresh_scheduled = False
+        self.logo_refresh_ts = 0
+        super().__init__(**kwargs)
+
+    def on_image(self, _):
+        pass
+
+    def on_query_image(self, query):
+        self.image_query = query
+        self.query_image()
+
+    def query_image(self):
+        print(f'query_image')
+
+        def update_image_sync(*_):
+            asyncio.ensure_future(self.update_image())
+        if time.time() - self.logo_refresh_ts > 1:
+            update_image_sync()
+        elif not self.logo_refresh_scheduled:
+            self.logo_refresh_scheduled = True
+            Clock.schedule_once(update_image_sync, 1)
+
+    async def update_image(self, query=None):
+        query = query or self.image_query
+        if not query:
+            return
+        self.logo_refresh_scheduled = False
+        self.logo_refresh_ts = time.time()
+        print(f'get_logo_from_ddg({query})')
+        result = await get_logo_from_ddg(query)
+        print(result)
+        self.image_url = '' if result is None else result[0] or ''
+        self.dispatch('on_image', self.image_url)
+
+
 class SDApp(BoxLayout, EventDispatcher):
     app: AppConfig = ObjectProperty(defaultvalue=None)
     selected_user = StringProperty(defaultvalue=None, allownone=True)
@@ -227,4 +287,6 @@ class StreamDeckApp(App):
 
 if __name__ == '__main__':
     print(config)
-    StreamDeckApp().run()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(StreamDeckApp().async_run(async_lib='asyncio'))
+    loop.close()

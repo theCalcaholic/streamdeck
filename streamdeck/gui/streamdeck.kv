@@ -135,24 +135,28 @@
   app_name: 'My App'
   app_url: 'https://youtube.com'
   app_show_address_bar: False
+  logo_source: ''
   title: 'Edit App "%s"' % root.app_name
   size_hint: 0.95, 0.95
   auto_dismiss: False
   BoxLayout:
     orientation: 'vertical'
+    padding: 5, 0, 5, 0
     Widget:
-      size_hint_y: None
+      size_hint_y: 1
       height: 10
     TextField:
       label: 'name'
       placeholder: root.app_name
       label_width: root.field_label_width
-      value_change: root.set_name
+      on_text:
+        root.app_name = self.value
     TextField:
       label: 'url'
       placeholder: root.app_url
       label_width: root.field_label_width
-      value_change: root.set_url
+      on_text:
+        root.set_url(self.value)
     CheckBoxField:
       label: 'show address bar'
       default: root.app_show_address_bar
@@ -169,13 +173,17 @@
       font_size: 18
       size_hint_y: None
       size_hint_x: None
-      size: self.texture_size
-      padding_x: 5
+      size: self.texture_size[0], 80
       halign: 'left'
-      height: 60
+      height: 80
     ImageField:
+      id: logo_field
       label: 'icon'
-      label_width: root.field_label_width
+      label_height: 30
+      image_url: root.logo_source
+      on_image:
+        root.logo_source = self.image_url
+
     Widget:
       height: 40
     Widget:
@@ -187,7 +195,7 @@
         size_hint_y: None
         size_hint_x: 1
         minimum_width: 60
-        height: 40
+        height: 32
         text: 'Save'
         on_release: root.apply()
       Widget:
@@ -195,7 +203,7 @@
         size_hint_y: None
         size_hint_x: 1
         minimum_width: 60
-        height: 40
+        height: 32
         text: 'Cancel'
         on_release: root.dismiss()
       Widget:
@@ -204,7 +212,8 @@
   label: 'label'
   placeholder: ''
   label_width: 100
-  value_change: None
+  value: input.text
+  on_text: None
   size_hint_y: None
   height: 35
   orientation: 'horizontal'
@@ -217,42 +226,54 @@
       size_hint_x: None
       size: self.texture_size
       text: root.label
-      padding_x: 5
       halign: 'left'
     Widget:
       size_hint_x: 1
   TextInput:
+    id: input
     text: root.placeholder
-    on_text: root.value_change is not None and root.value_change(self.text)
+    on_text: root.dispatch('on_text', self.text)
 
 <ImageField@BoxLayout>:
   label: 'label'
-  label_width: 100
+  label_height: 30
   image_size: (64, 64)
-  image_source: None
+  image_url: ''
+  text_input_height: 28
+  image_display_height: self.height - self.text_input_height - self.label_height
+  touched: False
+  orientation: 'vertical'
   size_hint_y: None
-  height: 64
-  orientation: 'horizontal'
-  BoxLayout:
+  height: 128
+  padding_x: 5
+  Label:
     size_hint_x: None
-    width: root.label_width
-    orientation: 'horizontal'
-    Label:
-      width: root.label_width
-      size_hint_x: None
-      size: self.texture_size
-      text: root.label
-      padding_x: 5
-      halign: 'left'
-    Widget:
-      size_hint_x: 1
+    size: self.texture_size[0], root.label_height
+    text: root.label
+    halign: 'left'
+    height: root.label_height
+    size_hint_y: None
   AsyncImage:
     id: img
-    source: root.image_source
-    size: root.image_size[0] * (root.height / root.image_size[1]), root.height
+    source: root.image_url
+    size_hint: None, None
+    size: root.image_size[0] * (root.image_display_height / root.image_size[1]), root.image_display_height
   TextInput:
+    height: root.text_input_height
+    size_hint_y: None
+    text: root.image_url
+    on_text:
+      root.image_source = self.text
+      root.dispatch('on_image', root.image_source)
+    hint_text: 'image url'
+  TextInput:
+    id: search_field
+    height: root.text_input_height
+    size_hint_y: None
     text: ''
-    on_text: img.source = self.text
+    on_text:
+      root.dispatch('on_query_image', self.text)
+    hint_text: 'search image'
 
 
 <CheckBoxField@BoxLayout>
@@ -260,6 +281,7 @@
   default: False
   label_width: 100
   value_change: None
+  touched: False
   size_hint_y: None
   height: 35
   orientation: 'horizontal'
@@ -271,7 +293,6 @@
       size_hint_x: None
       size: self.texture_size
       text: root.label
-      padding_x: 5
       halign: 'left'
     Widget:
       size_hint_x: 1

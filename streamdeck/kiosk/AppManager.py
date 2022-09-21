@@ -15,6 +15,9 @@ def install_userchrome_css(profile_path: Path, hide_address_bar=True):
         (profile_path / 'chrome').mkdir(parents=True)
     except FileExistsError:
         pass
+    with (profile_path / 'prefs.js').open('a') as f:
+        f.writelines(['user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);'])
+
     with (Path(__file__).parent / "userChrome.css.jinja2").open("r") as f:
         template = Template(f.read())
     rendered = template.render(hide_adress_bar=hide_address_bar)
