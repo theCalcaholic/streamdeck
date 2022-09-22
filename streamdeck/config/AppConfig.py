@@ -15,7 +15,7 @@ class AppConfig(Serializable):
     hide_address_bar: bool = True
 
     def get_launch_args(self, user: str):
-        args = ["--kiosk"] if self.hide_address_bar else []
+        args = ["$([[ -n \"$SteamDeck\" ]] || echo '--kiosk')"] if self.hide_address_bar else []
         firefox_profile = self.get_firefox_profile_path(user)
         try:
             flatpak_config_path = expanduser('~/.var/app/org.mozilla.firefox')
