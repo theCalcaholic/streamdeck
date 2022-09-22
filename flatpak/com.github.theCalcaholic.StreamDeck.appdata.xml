@@ -4,6 +4,7 @@
     <id>com.github.theCalcaholic.StreamDeck</id>
     <metadata_license>FSFAP</metadata_license>
     <project_license>GPL-3.0+</project_license>
+    <content_rating type="oars-1.0" />
     <name>Stream Deck</name>
     <summary>Add Streaming Web Services to Steam</summary>
 
