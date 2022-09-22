@@ -17,10 +17,10 @@ async def get_logo_from_ddg(search) -> Tuple[str, int, int] | None:
             'pretty': 0,
             't': 'streamdeck'
         })
-        print(query)
+        #print(query)
         result = http.urlopen("GET", f"https://duckduckgo.com/?{query}")
         parsed = json.loads(result.data)
-        print(parsed)
+        #print(parsed)
         try:
             if 'Image' in parsed and parsed['ImageIsLogo']:
                 return f"https://duckduckgo.com{parsed['Image']}", int(parsed['ImageHeight'] or -1), \
